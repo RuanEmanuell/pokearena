@@ -44,14 +44,30 @@ function SquareBox(props) {
     <div className="SquareContainer">
       <div className="SquareBox">
         <div>
-        <ChooseBox pokemon={props.pokemon}/>
-        <img src={props.pokemon[1]['sprites']['front_default']} className="EnemyPokemonImg"></img>
-        <img src={props.pokemon[0]['sprites']['back_default']} className="PlayerPokemonImg"></img>
+          <ChooseBox pokemon={props.pokemon} />
+          <PokemonStatsBox pokemon = {props.pokemon}/>
+          <img src={props.pokemon[1][1]} className="EnemyPokemonImg"></img>
+          <img src={props.pokemon[0][2]} className="PlayerPokemonImg"></img>
         </div>
         <AttackBox isAttacking={isAttacking} ToggleAttackLineView={toggleAttackLineView} />
       </div>
     </div>
   );
+}
+
+function PokemonStatsBox(props){
+  let hpStyle = {
+    width : `${props.pokemon[0][5]}px`
+  }
+  return(
+    <div className="StatsBox">
+      <div className="NameTypeBox">
+        <p>{props.pokemon[0][0]}</p>
+        <p>{props.pokemon[0][6]}</p>
+      </div>
+      <div class="HpBar" style={hpStyle}>{props.pokemon[0][5]}</div>
+    </div>
+  )
 }
 
 function AttackBox(props) {
@@ -63,7 +79,7 @@ function AttackBox(props) {
           <AttackSelection toggleAttackLineView={props.ToggleAttackLineView} attacks={move[1]} />
           <AttackSelection toggleAttackLineView={props.ToggleAttackLineView} attacks={move[2]} />
           <AttackSelection toggleAttackLineView={props.ToggleAttackLineView} attacks={move[3]} />
-          </div>
+        </div>
       </>
     ) : (
       <div></div>
@@ -183,13 +199,13 @@ function ChooseBox(props) {
   return (
     <div className="ChooseBox">
       <div className="PokemonChoose">
-      <img src={props.pokemon[0]['sprites']['front_default']} className="ChoosePokemonImg"></img>
+        <img src={props.pokemon[0][1]} className="ChoosePokemonImg"></img>
       </div>
       <div className="PokemonChoose">
-      <img src={props.pokemon[3]['sprites']['front_default']} className="ChoosePokemonImg"></img>
+        <img src={props.pokemon[2][1]} className="ChoosePokemonImg"></img>
       </div>
       <div className="PokemonChoose">
-      <img src={props.pokemon[4]['sprites']['front_default']} className="ChoosePokemonImg"></img>
+        <img src={props.pokemon[3][1]} className="ChoosePokemonImg"></img>
       </div>
     </div>
   )
@@ -200,12 +216,17 @@ async function fetchPokemon() {
   for (let i = 0; i < 6; i++) {
     let random = Math.floor(Math.random() * 151);
     let response = await fetch(`https://pokeapi.co/api/v2/pokemon/${random}`);
-    pokemon.push(await response.json());
-    for (let j = 0; j < 4; j++) {
-      let randomAttack = Math.floor(Math.random() * pokemon[i]['moves'].length)
-      await fetchMove(pokemon[i]['moves'][randomAttack]['move']['url']);
+    let pokemonResponse = (await response.json());
+    if (pokemonResponse['types'].length == 1) {
+      pokemon.push([pokemonResponse['name'].toUpperCase(), pokemonResponse['sprites']['front_default'], pokemonResponse['sprites']['back_default'], pokemonResponse['stats'], pokemonResponse['moves'], 100, pokemonResponse['types'][0]['type']['name']]);
+    } else {
+      pokemon.push([pokemonResponse['name'].toUpperCase(), pokemonResponse['sprites']['front_default'], pokemonResponse['sprites']['back_default'], pokemonResponse['stats'], pokemonResponse['moves'], 100, pokemonResponse['types'][0]['type']['name'], pokemonResponse['types'][1]['type']['name']]);
     }
-    console.log(pokemon[i]);
+    console.log(pokemon);
+    for (let j = 0; j < 4; j++) {
+      let randomAttack = Math.floor(Math.random() * pokemon[i][4].length)
+      await fetchMove(pokemon[i][4][randomAttack]['move']['url']);
+    }
   }
 }
 
