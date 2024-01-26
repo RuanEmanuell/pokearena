@@ -2,10 +2,11 @@ import './App.css';
 import { useState } from 'react';
 import specialMoveImage from './public/specialmove.png';
 import physicalMoveImage from './public/physicalmove.png';
-import statusMoveImage from './public/statusmove.png';
+import pokemonBackgroundImage from './public/background.png';
 
 let pokemon = [];
-let move = [];
+let currentPokemon = 0;
+let enemyCurrentPokemon = 3;
 
 function App() {
   const [isMenuVisible, changeMenuVisibleState] = useState(true);
@@ -37,35 +38,136 @@ function SquareBox(props) {
 
   const toggleAttackLineView = () => {
     changeAttackLine(current => !current);
+    console.log(pokemon[currentPokemon][1][0][1]);
+    pokemon[enemyCurrentPokemon][6] = (pokemon[enemyCurrentPokemon][6] - pokemon[currentPokemon][1][0][1]);
+  }
+
+  const [playerImage, setPlayerImage] = useState(props.pokemon[currentPokemon][3]);
+  const [enemyImage, setEnemyImage] = useState(props.pokemon[3][2]);
+
+  const changePlayerPokemon = (newPokemonIndex) => {
+    setPlayerImage(props.pokemon[newPokemonIndex][3]);
+    currentPokemon = newPokemonIndex;
+  };
+
+  let SquareBoxStyle = {
+    backgroundImage: `url(${pokemonBackgroundImage})`
   }
 
 
   return (
-    <div className="SquareContainer">
-      <div className="SquareBox">
-        <div>
-          <ChooseBox pokemon={props.pokemon} />
-          <PokemonStatsBox pokemon = {props.pokemon}/>
-          <img src={props.pokemon[1][1]} className="EnemyPokemonImg"></img>
-          <img src={props.pokemon[0][2]} className="PlayerPokemonImg"></img>
+    <div>
+      <ChooseBox pokemon={props.pokemon} changePlayerPokemon={changePlayerPokemon} />
+      <div className="SquareContainer">
+        <div className="SquareBox" style={SquareBoxStyle}>
+          <div>
+            <PokemonStatsBox pokemon={props.pokemon} />
+            <EnemyPokemonStatsBox pokemon={props.pokemon} />
+            <img src={enemyImage} className="EnemyPokemonImg"></img>
+            <img src={playerImage} className="PlayerPokemonImg"></img>
+          </div>
+          <AttackBox isAttacking={isAttacking} ToggleAttackLineView={toggleAttackLineView} />
         </div>
-        <AttackBox isAttacking={isAttacking} ToggleAttackLineView={toggleAttackLineView} />
       </div>
     </div>
   );
 }
 
-function PokemonStatsBox(props){
-  let hpStyle = {
-    width : `${props.pokemon[0][5]}px`
+function PokemonStatsBox(props) {
+  let pokemonName = props.pokemon[currentPokemon][0];
+  let pokemonHp = props.pokemon[currentPokemon][6];
+  let pokemonType = props.pokemon[currentPokemon][7];
+  let pokemonType2 = "";
+
+  if (props.pokemon[currentPokemon].length === 9) {
+    pokemonType2 = props.pokemon[currentPokemon][8];
   }
-  return(
+
+
+  let hpStyle = {
+    width: `${pokemonHp}px`
+  }
+
+  let typeStyle = {
+    color: colorSelection(pokemonType),
+    textShadow: '1px 1px 1px black'
+  }
+
+  let type2Style = {
+    color: colorSelection(pokemonType2),
+    textShadow: '1px 1px 1px black'
+  }
+
+  pokemonType = pokemonType.toUpperCase();
+  pokemonType2 = pokemonType2.toUpperCase();
+
+  return (
     <div className="StatsBox">
       <div className="NameTypeBox">
-        <p>{props.pokemon[0][0]}</p>
-        <p>{props.pokemon[0][6]}</p>
+        <p>{pokemonName}</p>
+        <p style={typeStyle}>{pokemonType}</p>
+        {props.pokemon[currentPokemon].length === 9 ? (
+          <>
+            <p>/</p>
+            <p style={type2Style}>{pokemonType2}</p>
+          </>
+        ) : (
+          <p></p>
+        )}
       </div>
-      <div class="HpBar" style={hpStyle}>{props.pokemon[0][5]}</div>
+      <div className="HpBarContainer">
+        <p>HP:</p>
+        <div className="HpBar" style={hpStyle}>{pokemonHp}</div>
+      </div>
+    </div>
+  )
+}
+
+function EnemyPokemonStatsBox(props) {
+  let pokemonName = props.pokemon[enemyCurrentPokemon][0];
+  let pokemonHp = props.pokemon[enemyCurrentPokemon][6];
+  let pokemonType = props.pokemon[enemyCurrentPokemon][7];
+  let pokemonType2 = "";
+
+  if (props.pokemon[enemyCurrentPokemon].length === 9) {
+    pokemonType2 = props.pokemon[enemyCurrentPokemon][8];
+  }
+
+  let hpStyle = {
+    width: `${pokemonHp}px`
+  }
+
+  let typeStyle = {
+    color: colorSelection(pokemonType),
+    textShadow: '1px 1px 1px black'
+  }
+
+  let type2Style = {
+    color: colorSelection(pokemonType2),
+    textShadow: '1px 1px 1px black'
+  }
+
+  pokemonType = pokemonType.toUpperCase();
+  pokemonType2 = pokemonType2.toUpperCase();
+
+  return (
+    <div className="StatsBox EnemyStatsBox">
+      <div className="NameTypeBox">
+        <p>{pokemonName}</p>
+        <p style={typeStyle}>{pokemonType}</p>
+        {props.pokemon[enemyCurrentPokemon].length === 9 ? (
+          <>
+            <p>/</p>
+            <p style={type2Style}>{pokemonType2}</p>
+          </>
+        ) : (
+          <p></p>
+        )}
+      </div>
+      <div className="HpBarContainer">
+        <p>HP:</p>
+        <div className="HpBar" style={hpStyle}>{pokemonHp}</div>
+      </div>
     </div>
   )
 }
@@ -75,10 +177,10 @@ function AttackBox(props) {
     !props.isAttacking ? (
       <>
         <div className="AttackBox">
-          <AttackSelection toggleAttackLineView={props.ToggleAttackLineView} attacks={move[0]} />
-          <AttackSelection toggleAttackLineView={props.ToggleAttackLineView} attacks={move[1]} />
-          <AttackSelection toggleAttackLineView={props.ToggleAttackLineView} attacks={move[2]} />
-          <AttackSelection toggleAttackLineView={props.ToggleAttackLineView} attacks={move[3]} />
+          <AttackSelection toggleAttackLineView={props.ToggleAttackLineView} attacks={pokemon[currentPokemon][1][0]} />
+          <AttackSelection toggleAttackLineView={props.ToggleAttackLineView} attacks={pokemon[currentPokemon][1][1]} />
+          <AttackSelection toggleAttackLineView={props.ToggleAttackLineView} attacks={pokemon[currentPokemon][1][2]} />
+          <AttackSelection toggleAttackLineView={props.ToggleAttackLineView} attacks={pokemon[currentPokemon][1][3]} />
         </div>
       </>
     ) : (
@@ -93,61 +195,8 @@ function AttackSelection(props) {
   let attackPower = props.attacks[1];
   let attackType = props.attacks[2];
   let attackClass = props.attacks[3];
-  let typeColor;
 
-  switch (attackType) {
-    case 'normal':
-      typeColor = 'Tan';
-      break;
-    case 'fighting':
-      typeColor = 'FireBrick';
-      break;
-    case 'flying':
-      typeColor = 'DeepSkyBlue';
-      break;
-    case 'poison':
-      typeColor = 'DarkSlateBlue';
-      break;
-    case 'ground':
-      typeColor = 'Sienna';
-      break;
-    case 'rock':
-      typeColor = 'SlateGray';
-      break;
-    case 'bug':
-      typeColor = 'OliveDrab';
-      break;
-    case 'ghost':
-      typeColor = 'DarkSlateGray';
-      break;
-    case 'steel':
-      typeColor = 'DimGray';
-      break;
-    case 'fire':
-      typeColor = 'Tomato';
-      break;
-    case 'water':
-      typeColor = 'DodgerBlue';
-      break;
-    case 'grass':
-      typeColor = 'ForestGreen';
-      break;
-    case 'electric':
-      typeColor = 'Gold';
-      break;
-    case 'psychic':
-      typeColor = 'MediumPurple';
-      break;
-    case 'ice':
-      typeColor = 'LightSkyBlue';
-      break;
-    case 'dragon':
-      typeColor = 'DarkOrange';
-      break;
-    default:
-      typeColor = 'Gray';
-      break;
-  }
+  let typeColor = colorSelection(attackType);
 
   let typeStyle = {
     backgroundColor: typeColor
@@ -162,27 +211,15 @@ function AttackSelection(props) {
     case 'physical':
       attackClassImg = physicalMoveImage;
       break;
-    case 'status':
-      attackClassImg = statusMoveImage;
-      break;
   }
 
-  let hintText = "";
-
-  if (attackClass != 'status') {
-    hintText = `
+  let hintText = `
     ${attackName}
     Power: ${attackPower},
     Type: ${attackType},
     Class: ${attackClass}
     `
-  } else {
-    hintText = `
-    ${attackName}
-    Type: ${attackType},
-    Class: ${attackClass}
-    `
-  }
+
 
   hintText = hintText.toUpperCase();
 
@@ -196,45 +233,132 @@ function AttackSelection(props) {
 }
 
 function ChooseBox(props) {
+  const adjacentPokemonIndices = [1, 2, 0];
+
+  const pokemon1 = props.pokemon[currentPokemon][2];
+  const pokemon2 = props.pokemon[adjacentPokemonIndices[currentPokemon]][2];
+  const pokemon3 = props.pokemon[adjacentPokemonIndices[adjacentPokemonIndices[currentPokemon]]][2];
+
+  const changePokemon = (newIndex) => {
+    props.changePlayerPokemon(newIndex);
+  };
+
   return (
-    <div className="ChooseBox">
-      <div className="PokemonChoose">
-        <img src={props.pokemon[0][1]} className="ChoosePokemonImg"></img>
-      </div>
-      <div className="PokemonChoose">
-        <img src={props.pokemon[2][1]} className="ChoosePokemonImg"></img>
-      </div>
-      <div className="PokemonChoose">
-        <img src={props.pokemon[3][1]} className="ChoosePokemonImg"></img>
+    <div className="ChooseContainer">
+      <div className="ChooseBox">
+        <div className="PokemonChoose">
+          <img src={pokemon1} className="ChoosePokemonImg" onClick={() => changePokemon(currentPokemon)}></img>
+        </div>
+        <div className="PokemonChoose">
+          <img src={pokemon2} className="ChoosePokemonImg" onClick={() => changePokemon(adjacentPokemonIndices[currentPokemon])}></img>
+        </div>
+        <div className="PokemonChoose">
+          <img src={pokemon3} className="ChoosePokemonImg" onClick={() => changePokemon(adjacentPokemonIndices[adjacentPokemonIndices[currentPokemon]])}></img>
+        </div>
       </div>
     </div>
-  )
-
+  );
 }
+
+
 
 async function fetchPokemon() {
   for (let i = 0; i < 6; i++) {
     let random = Math.floor(Math.random() * 151);
+
+    while (random == 0 || random == 132) {
+      random = Math.floor(Math.random() * 151);
+    }
+
     let response = await fetch(`https://pokeapi.co/api/v2/pokemon/${random}`);
     let pokemonResponse = (await response.json());
-    if (pokemonResponse['types'].length == 1) {
-      pokemon.push([pokemonResponse['name'].toUpperCase(), pokemonResponse['sprites']['front_default'], pokemonResponse['sprites']['back_default'], pokemonResponse['stats'], pokemonResponse['moves'], 100, pokemonResponse['types'][0]['type']['name']]);
-    } else {
-      pokemon.push([pokemonResponse['name'].toUpperCase(), pokemonResponse['sprites']['front_default'], pokemonResponse['sprites']['back_default'], pokemonResponse['stats'], pokemonResponse['moves'], 100, pokemonResponse['types'][0]['type']['name'], pokemonResponse['types'][1]['type']['name']]);
-    }
-    console.log(pokemon);
+
+    let move = [];
+
     for (let j = 0; j < 4; j++) {
-      let randomAttack = Math.floor(Math.random() * pokemon[i][4].length)
-      await fetchMove(pokemon[i][4][randomAttack]['move']['url']);
+      let randomAttack = Math.floor(Math.random() * pokemonResponse['moves'].length);
+      let newMove = await fetchMove(pokemonResponse['moves'][randomAttack]['move']['url']);
+
+      while (newMove[4] == 'status' || newMove[1] == null) {
+        randomAttack = Math.floor(Math.random() * pokemonResponse['moves'].length);
+        newMove = await fetchMove(pokemonResponse['moves'][randomAttack]['move']['url']);
+      }
+
+      move.push(newMove);
     }
+
+    if (pokemonResponse['types'].length == 1) {
+      pokemon.push([pokemonResponse['name'].toUpperCase(), move, pokemonResponse['sprites']['front_default'], pokemonResponse['sprites']['back_default'], pokemonResponse['stats'], pokemonResponse['moves'], 100, pokemonResponse['types'][0]['type']['name']]);
+    } else {
+      pokemon.push([pokemonResponse['name'].toUpperCase(), move, pokemonResponse['sprites']['front_default'], pokemonResponse['sprites']['back_default'], pokemonResponse['stats'], pokemonResponse['moves'], 100, pokemonResponse['types'][0]['type']['name'], pokemonResponse['types'][1]['type']['name']]);
+    }
+
+    console.log(pokemon);
   }
 }
 
 async function fetchMove(url) {
   let response = await fetch(url);
   let moveResponse = (await response.json());
-  move.push([moveResponse['name'], moveResponse['power'], moveResponse['type']['name'], moveResponse['damage_class']['name']]);
-  //console.log(move)
+  return [moveResponse['name'], moveResponse['power'], moveResponse['type']['name'], moveResponse['damage_class']['name']];
+}
+
+function colorSelection(type) {
+  let color = 'grey';
+  switch (type) {
+    case 'normal':
+      color = 'Tan';
+      break;
+    case 'fighting':
+      color = 'FireBrick';
+      break;
+    case 'flying':
+      color = 'DeepSkyBlue';
+      break;
+    case 'poison':
+      color = 'DarkSlateBlue';
+      break;
+    case 'ground':
+      color = 'Sienna';
+      break;
+    case 'rock':
+      color = 'SlateGray';
+      break;
+    case 'bug':
+      color = 'OliveDrab';
+      break;
+    case 'ghost':
+      color = 'DarkSlateGray';
+      break;
+    case 'steel':
+      color = 'DimGray';
+      break;
+    case 'fire':
+      color = 'Tomato';
+      break;
+    case 'water':
+      color = 'DodgerBlue';
+      break;
+    case 'grass':
+      color = 'ForestGreen';
+      break;
+    case 'electric':
+      color = 'Gold';
+      break;
+    case 'psychic':
+      color = 'MediumPurple';
+      break;
+    case 'ice':
+      color = 'LightSkyBlue';
+      break;
+    case 'dragon':
+      color = 'DarkOrange';
+      break;
+    default:
+      color = 'Gray';
+      break;
+  }
+  return color;
 }
 
 export default App;
