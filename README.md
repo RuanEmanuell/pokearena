@@ -5,13 +5,8 @@
 This project is an interactive web-based game, built using React, that simulates Pokemon battles. Players can initiate a battle and random pokemon and attacks will be selected using the PokeAPI.
 Still under development
 
-Technologies Used:
+Technologies Used: HTML, CSS, ReactJS and the PokeAPI
 
-  HTML
-  CSS
-  React (Hooks)
-  PokeAPI
-    
 ### How to Run
 
      Clone the repository.
