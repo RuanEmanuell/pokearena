@@ -14,4 +14,6 @@ Technologies Used: HTML, CSS, ReactJS and the PokeAPI
      Run the project with 'npm start'.
      Access http://localhost:3000 in your browser.
     
-### Here are some images of the project running (coming soon).
+### Here are some images of the project running:
+
+![Screenshot_529](https://github.com/RuanEmanuell/pokereactarena/assets/113607857/7b7c4b2c-9fae-4ad0-afb4-f04382952481)
