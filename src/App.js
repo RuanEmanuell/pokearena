@@ -4,6 +4,9 @@ import backgroundImage from './public/background.png';
 import physicalMoveImage from './public/physicalmove.png';
 import specialMoveImage from './public/specialmove.png';
 
+let allPokemon = [];
+let allEnemyPokemon = [];
+
 function App() {
   //State manegement
   const [opacity, setOpacity] = useState('1');
@@ -23,10 +26,7 @@ function App() {
   const [enemyPokemonType1, setEnemyType1] = useState("");
   const [enemyPokemonType2, setEnemyType2] = useState("");
 
-  let allPokemon = [];
-  let allEnemyPokemon = [];
-
-  const changeOpacityState = () => {
+  const TurnOnOff = () => {
     if (opacity === '1') {
       setOpacity('0');
     } else {
@@ -57,8 +57,19 @@ function App() {
         setEnemyType2(allEnemyPokemon[0][0]['type2']);
       }
     }, 150);
+  }
 
+  
+  const attackClick = (attackName, attackType, attackDmg) => {
+    let subtractionDmg = attacking(attackName, attackType, attackDmg);
+    allEnemyPokemon[0][0]['currentHp'] = allEnemyPokemon[0][0]['currentHp'] - subtractionDmg;
+    let newEnemyHp = allEnemyPokemon[0][0]['currentHp'];
+    
+    if (newEnemyHp < 0) {
+      newEnemyHp = 0;
+    }
 
+    setEnemyHp(newEnemyHp);
   }
 
   let currentPokemon = 0;
@@ -95,28 +106,35 @@ function App() {
             </div>
             <div className="AttackBox">
               {playerPokemonMoves.map((item, index) => (
-                <AttackSelector attackName={item[0]} attackColor={colorSelection(item[2])} attackType={item[2]} attackDmg={item[1]} attackClass={item[3]} />
+                <AttackSelector key = {index} 
+                attackName={item[0]} attackColor={colorSelection(item[2])} 
+                attackType={item[2]} attackDmg={item[1]} attackClass={item[3]} 
+                attackClick = {attackClick}/>
               ))}
             </div>
           </div>
         </div>
-        <ConsoleButtons changeOpacityState={changeOpacityState} />
+        <ConsoleButtons TurnOnOff={TurnOnOff} />
       </div>
     </div>
   )
 }
 
 //Components
-function AttackSelector({attackName, attackColor, attackDmg, attackClass}) {
+function AttackSelector({attackName, attackColor, attackDmg, attackClass, attackType, attackClick}) {
+
   let attackStyle = {
     backgroundColor: attackColor
   }
+
   let attackClassImg = physicalMoveImage;
+
   if (attackClass == 'special') {
     attackClassImg = specialMoveImage;
   }
+
   return (
-    <div key={attackName} className="AttackSelector" style={attackStyle}>
+    <div className="AttackSelector" style={attackStyle} onClick = {() => attackClick(attackName, attackType, attackDmg)}>
       <h3 className="AttackName">{attackName}</h3>
       <img src={attackClassImg} className="AttackClassImg"></img>
       <h3 className="AttackDmg">DMG:{attackDmg}</h3>
@@ -143,18 +161,20 @@ function PokemonInfo({ pokemonName, pokemonType1, pokemonType2 }) {
   </div>);
 }
 
-function HpInfo({ PokemonHp }) {
+function HpInfo({ pokemonHp}) {
   let hpStyle = {
-    width: `${PokemonHp}%`
+    width: `${pokemonHp}%`
   }
-  return (<div className="Hp" style={hpStyle}>
+  return (<div className="Hp">
     <h4>HP:</h4>
-    <div className="CurrentHp"></div>
+    <div className="TotalHp">
+      <div className="CurrentHp" style={hpStyle}></div>
+    </div>
   </div>);
 }
 
-function ConsoleButtons({ changeOpacityState }) {
-  return (<div className="ButtonsContainer" onClick={changeOpacityState}>
+function ConsoleButtons({ TurnOnOff }) {
+  return (<div className="ButtonsContainer" onClick={TurnOnOff}>
     <div className="OnButton"></div>
     <div className="DPad">
       <div className="Horizontal"></div>
@@ -164,8 +184,8 @@ function ConsoleButtons({ changeOpacityState }) {
 }
 
 //Game functions
-function Attacking(attack){
-
+function attacking(attackName, attackType, attackDmg){
+  return attackDmg;
 }
 
 //Create Pokemon / Visual functions
