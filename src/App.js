@@ -1,81 +1,52 @@
 import './App.css';
 import { useState, useEffect } from 'react';
 import backgroundImage from './public/background.png';
+import physicalMoveImage from './public/physicalmove.png';
+import specialMoveImage from './public/specialmove.png';
 
 function App() {
   const [opacity, setOpacity] = useState('1');
   const [display, setDisplay] = useState('block');
   const [backgroundDisplay, setBackgroundDisplay] = useState('none');
+  const [playerPokemonName, setPlayerName] = useState("");
   const [playerPokemonSprite, setPlayerSprite] = useState("");
   const [playerPokemonMoves, setPlayerMoves] = useState([]);
   const [enemyPokemonSprite, setEnemySprite] = useState("");
-  const [playerEnemynMoves, setEnemyMoves] = useState([]);
+  const [EnemyPokemonMoves, setEnemyMoves] = useState([]);
+  const [playerPokemonHp, setPlayerHp] = useState(100);
+
+  let allPokemon = [];
+  let allEnemyPokemon = [];
 
   const changeOpacityState = () => {
     if (opacity === '1') {
       setOpacity('0');
-      setTimeout(async function () {
+    } else {
+      setOpacity('1');
+    }
+    setTimeout(async function () {
+      if (opacity == '0') {
+        setDisplay('block');
+        setBackgroundDisplay('none');
+      } else {
         setDisplay('none');
         setBackgroundDisplay('block');
 
-        let pokemonId = Math.floor(Math.random(1) * 151);
+        allPokemon.push(await createNewPokemon());
+        setPlayerName(allPokemon[0][0]['name'])
+        setPlayerMoves(allPokemon[0][0]['moves']);
+        setPlayerSprite(allPokemon[0][0]['backSprite']);
+        setPlayerHp(allPokemon[0][0]['currentHp']);
 
-        let pokemonInformation = await fetchPokemon(pokemonId);
+        allEnemyPokemon.push(await createNewPokemon());
+        setEnemyMoves(allEnemyPokemon[0][0]['moves']);
+        setEnemySprite(allEnemyPokemon[0][0]['frontSprite']);
+        console.log(allPokemon);
+      }
+    }, 150);
 
-        pokemon[0]['name'] = pokemonInformation['name'];
-        pokemon[0]['backSprite'] = pokemonInformation['sprites']['back_default'];
-
-        for (var i = 0; i < 4; i++) {
-          let randomMove = Math.floor(Math.random(1) * pokemonInformation['moves'].length);
-          let moveInformation = await fetchMoves(randomMove);
-          pokemon[0]['moves'].push([moveInformation['name'], moveInformation['power'], moveInformation['type']['name']]);
-        }
-
-        setPlayerMoves(pokemon[0]['moves']);
-        setPlayerSprite(pokemon[0]['backSprite']);
-        
-        pokemonId = Math.floor(Math.random(1) * 151);
-        pokemonInformation = await fetchPokemon(pokemonId);
-
-        enemyPokemon[0]['name'] = pokemonInformation['name'];
-        enemyPokemon[0]['frontSprite'] = pokemonInformation['sprites']['front_default'];
-
-        for (var i = 0; i < 4; i++) {
-          let randomMove = Math.floor(Math.random(1) * pokemonInformation['moves'].length);
-          let moveInformation = await fetchMoves(randomMove);
-          enemyPokemon[0]['moves'].push([moveInformation['name'], moveInformation['power'], moveInformation['type']['name']]);
-        }
-
-        setEnemyMoves(enemyPokemon[0]['moves']);
-        setEnemySprite(enemyPokemon[0]['frontSprite']);
-      }, 150);
-    } else {
-      setOpacity('1');
-      setTimeout(function () {
-        setDisplay('block');
-        setBackgroundDisplay('none');
-      }, 150);
-    }
 
   }
-
-  let pokemon = [
-    {
-      name: "",
-      backSprite: "",
-      frontSprite: "",
-      moves: [],
-    }
-  ]
-
-  let enemyPokemon = [
-    {
-      name: "",
-      backSprite: "",
-      frontSprite: "",
-      moves: [],
-    }
-  ]
 
   let currentPokemon = 0;
 
@@ -98,14 +69,21 @@ function App() {
           </div>
           <div className="OnScreen" style={backgroundController}>
             <div className="GameSprites">
+              <div className="HpBar">
+                <div className="PokemonInfo">
+                    <h4>{playerPokemonName}</h4>
+                  </div>
+                <div className="Hp">
+                  <h4>HP:</h4>
+                  <div className="CurrentHp"></div>
+                </div>
+              </div>
               <img src={playerPokemonSprite} className="PlayerPokemon"></img>
               <img src={enemyPokemonSprite} className="EnemyPokemon"></img>
             </div>
             <div className="AttackBox">
               {playerPokemonMoves.map((item, index) => (
-                <div key={item} className="AttackSelector">
-                  <h3 className="AttackName">{item[0]}</h3>
-                </div>
+                <AttackSelector attackName = {item[0]} attackColor = {colorSelection(item[2])} attackType = {item[2]} attackDmg = {item[1]} attackClass = {item[3]}/>
               ))}
             </div>
           </div>
@@ -122,6 +100,82 @@ function App() {
   )
 }
 
+function AttackSelector(props){
+  let attackStyle = {
+    backgroundColor: props.attackColor
+  }
+  let attackClassImg = physicalMoveImage;
+  if(props.attackClass == 'special'){
+    attackClassImg = specialMoveImage;
+  }
+  return (
+      <div key={props.attackName} className="AttackSelector" style={attackStyle}>
+        <h3 className="AttackName">{props.attackName}</h3>
+        <img src={attackClassImg} className="AttackClassImg"></img>
+        <h3 className="AttackDmg">DMG:{props.attackDmg}</h3>
+      </div>
+  )
+}
+
+async function createNewPokemon() {
+  let pokemonId = Math.floor(Math.random() * 151);
+
+  if(pokemonId == 0 || pokemonId == 132){
+    pokemonId = 1;
+  }
+
+  let pokemonInformation = await fetchPokemon(pokemonId);
+
+  let pokemon = [
+    {
+      name: "",
+      backSprite: "",
+      frontSprite: "",
+      type1: "",
+      type2: "",
+      moves: [],
+      attackPower: 0,
+      healthPower: 0,
+      currentHp: 100
+    }
+  ]
+
+  pokemon[0]['name'] = pokemonInformation['name'];
+  pokemon[0]['backSprite'] = pokemonInformation['sprites']['back_default'];
+  pokemon[0]['frontSprite'] = pokemonInformation['sprites']['front_default'];
+  pokemon[0]['type1'] = pokemonInformation['types'][0];
+
+  if(pokemonInformation['types'].length > 1){
+    pokemon[0]['type2'] = pokemonInformation['types'][1];
+  }
+
+  pokemon[0]['attackPower'] = pokemonInformation['stats'][1]['base_stat'] + pokemonInformation['stats'][3]['base_stat'];
+  pokemon[0]['healthPower'] = pokemonInformation['stats'][0]['base_stat'] + pokemonInformation['stats'][2]['base_stat'] + pokemonInformation['stats'][4]['base_stat'];
+
+  for (var i = 0; i < 4; i++) {
+    let currentPokemonMoves = [];
+
+    let randomMove = Math.floor(Math.random() * pokemonInformation['moves'].length + 1);
+
+    while(randomMove == 0){
+      randomMove = Math.floor(Math.random() * pokemonInformation['moves'].length + 1);
+    }
+
+    let moveInformation = await fetchMoves(randomMove);
+
+    while(moveInformation['power'] == null || currentPokemonMoves.includes(moveInformation['name'])){
+      randomMove = Math.floor(Math.random() * pokemonInformation['moves'].length + 1);
+      moveInformation = await fetchMoves(randomMove);
+    }
+
+    currentPokemonMoves.push(moveInformation['name']);
+
+    pokemon[0]['moves'].push([moveInformation['name'], moveInformation['power'], moveInformation['type']['name'], moveInformation['damage_class']['name']]);
+  }
+  
+  return pokemon;
+}
+
 async function fetchPokemon(pokemonId) {
   let response = await fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonId}`);
   response = await response.json();
@@ -132,6 +186,64 @@ async function fetchMoves(moveId) {
   let response = await fetch(`https://pokeapi.co/api/v2/move/${moveId}/`);
   response = await response.json();
   return response;
+}
+
+function colorSelection(type) {
+  let color = 'Gray';
+  switch (type) {
+    case 'normal':
+      color = 'Tan';
+      break;
+    case 'fighting':
+      color = 'FireBrick';
+      break;
+    case 'flying':
+      color = 'DeepSkyBlue';
+      break;
+    case 'poison':
+      color = 'DarkSlateBlue';
+      break;
+    case 'ground':
+      color = 'Sienna';
+      break;
+    case 'rock':
+      color = 'SlateGray';
+      break;
+    case 'bug':
+      color = 'OliveDrab';
+      break;
+    case 'ghost':
+      color = 'DarkSlateGray';
+      break;
+    case 'steel':
+      color = 'DimGray';
+      break;
+    case 'fire':
+      color = 'Tomato';
+      break;
+    case 'water':
+      color = 'DodgerBlue';
+      break;
+    case 'grass':
+      color = 'ForestGreen';
+      break;
+    case 'electric':
+      color = 'Gold';
+      break;
+    case 'psychic':
+      color = 'MediumPurple';
+      break;
+    case 'ice':
+      color = 'LightSkyBlue';
+      break;
+    case 'dragon':
+      color = 'DarkOrange';
+      break;
+    default:
+      color = 'Gray';
+      break;
+  }
+  return color;
 }
 
 export default App;
