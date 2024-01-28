@@ -8,6 +8,8 @@ function App() {
   const [backgroundDisplay, setBackgroundDisplay] = useState('none');
   const [playerPokemonSprite, setPlayerSprite] = useState("");
   const [playerPokemonMoves, setPlayerMoves] = useState([]);
+  const [enemyPokemonSprite, setEnemySprite] = useState("");
+  const [playerEnemynMoves, setEnemyMoves] = useState([]);
 
   const changeOpacityState = () => {
     if (opacity === '1') {
@@ -15,6 +17,9 @@ function App() {
       setTimeout(async function () {
         setDisplay('none');
         setBackgroundDisplay('block');
+
+        let pokemonId = Math.floor(Math.random(1) * 151);
+
         let pokemonInformation = await fetchPokemon(pokemonId);
 
         pokemon[0]['name'] = pokemonInformation['name'];
@@ -25,8 +30,24 @@ function App() {
           let moveInformation = await fetchMoves(randomMove);
           pokemon[0]['moves'].push([moveInformation['name'], moveInformation['power'], moveInformation['type']['name']]);
         }
+
         setPlayerMoves(pokemon[0]['moves']);
         setPlayerSprite(pokemon[0]['backSprite']);
+        
+        pokemonId = Math.floor(Math.random(1) * 151);
+        pokemonInformation = await fetchPokemon(pokemonId);
+
+        enemyPokemon[0]['name'] = pokemonInformation['name'];
+        enemyPokemon[0]['frontSprite'] = pokemonInformation['sprites']['front_default'];
+
+        for (var i = 0; i < 4; i++) {
+          let randomMove = Math.floor(Math.random(1) * pokemonInformation['moves'].length);
+          let moveInformation = await fetchMoves(randomMove);
+          enemyPokemon[0]['moves'].push([moveInformation['name'], moveInformation['power'], moveInformation['type']['name']]);
+        }
+
+        setEnemyMoves(enemyPokemon[0]['moves']);
+        setEnemySprite(enemyPokemon[0]['frontSprite']);
       }, 150);
     } else {
       setOpacity('1');
@@ -38,9 +59,16 @@ function App() {
 
   }
 
-  let pokemonId = Math.floor(Math.random(1) * 151);
-
   let pokemon = [
+    {
+      name: "",
+      backSprite: "",
+      frontSprite: "",
+      moves: [],
+    }
+  ]
+
+  let enemyPokemon = [
     {
       name: "",
       backSprite: "",
@@ -71,11 +99,12 @@ function App() {
           <div className="OnScreen" style={backgroundController}>
             <div className="GameSprites">
               <img src={playerPokemonSprite} className="PlayerPokemon"></img>
+              <img src={enemyPokemonSprite} className="EnemyPokemon"></img>
             </div>
             <div className="AttackBox">
               {playerPokemonMoves.map((item, index) => (
                 <div key={item} className="AttackSelector">
-                  <h3>{item[0]}</h3>
+                  <h3 className="AttackName">{item[0]}</h3>
                 </div>
               ))}
             </div>

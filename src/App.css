@@ -83,18 +83,26 @@ body{
 }
 
 .PlayerPokemon{
-  margin-top: 40%;
+  position: relative;
+  top: 50%;
+  height: 50%;
+}
+
+.EnemyPokemon{
+  position: relative;
+  top: 10%;
+  left: 20%;
   height: 50%;
 }
 
 .GameSprites{
   height: 75%;
+  border: 2px solid black;
 }
 
 .AttackBox{
   height: 25%;
   background-color: rgb(255, 255, 195);
-  border: 5px solid black;
   display: grid;
   grid-template-columns: 25% 25% 25% 25%;
 }
@@ -103,6 +111,17 @@ body{
   text-align: center;
   height: 100%;
   border: 2px solid black;
+  transition: background-color 0.25s, color 0.25s;
 }
 
+.AttackSelector:hover{
+  cursor: pointer;
+  color: white;
+  background-color: black;
+}
+
+
+.AttackName{
+  text-transform: capitalize;
+}
 
