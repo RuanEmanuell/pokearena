@@ -5,15 +5,23 @@ import physicalMoveImage from './public/physicalmove.png';
 import specialMoveImage from './public/specialmove.png';
 
 function App() {
+  //State manegement
   const [opacity, setOpacity] = useState('1');
   const [display, setDisplay] = useState('block');
   const [backgroundDisplay, setBackgroundDisplay] = useState('none');
   const [playerPokemonName, setPlayerName] = useState("");
   const [playerPokemonSprite, setPlayerSprite] = useState("");
   const [playerPokemonMoves, setPlayerMoves] = useState([]);
-  const [enemyPokemonSprite, setEnemySprite] = useState("");
-  const [EnemyPokemonMoves, setEnemyMoves] = useState([]);
   const [playerPokemonHp, setPlayerHp] = useState(100);
+  const [playerPokemonType1, setPlayerType1] = useState("");
+  const [playerPokemonType2, setPlayerType2] = useState("");
+
+  const [enemyPokemonName, setEnemyName] = useState("");
+  const [enemyPokemonHp, setEnemyHp] = useState(100);
+  const [enemyPokemonSprite, setEnemySprite] = useState("");
+  const [enemyPokemonMoves, setEnemyMoves] = useState([]);
+  const [enemyPokemonType1, setEnemyType1] = useState("");
+  const [enemyPokemonType2, setEnemyType2] = useState("");
 
   let allPokemon = [];
   let allEnemyPokemon = [];
@@ -37,11 +45,16 @@ function App() {
         setPlayerMoves(allPokemon[0][0]['moves']);
         setPlayerSprite(allPokemon[0][0]['backSprite']);
         setPlayerHp(allPokemon[0][0]['currentHp']);
+        setPlayerType1(allPokemon[0][0]['type1']);
+        setPlayerType2(allPokemon[0][0]['type2']);
 
         allEnemyPokemon.push(await createNewPokemon());
+        setEnemyName(allEnemyPokemon[0][0]['name'])
         setEnemyMoves(allEnemyPokemon[0][0]['moves']);
         setEnemySprite(allEnemyPokemon[0][0]['frontSprite']);
-        console.log(allPokemon);
+        setEnemyHp(allEnemyPokemon[0][0]['currentHp']);
+        setEnemyType1(allEnemyPokemon[0][0]['type1']);
+        setEnemyType2(allEnemyPokemon[0][0]['type2']);
       }
     }, 150);
 
@@ -70,57 +83,96 @@ function App() {
           <div className="OnScreen" style={backgroundController}>
             <div className="GameSprites">
               <div className="HpBar">
-                <div className="PokemonInfo">
-                    <h4>{playerPokemonName}</h4>
-                  </div>
-                <div className="Hp">
-                  <h4>HP:</h4>
-                  <div className="CurrentHp"></div>
-                </div>
+                <PokemonInfo pokemonName={playerPokemonName} pokemonType1={playerPokemonType1} pokemonType2={playerPokemonType2} />
+                <HpInfo pokemonHp={playerPokemonHp} />
+              </div>
+              <div className="HpBar EnemyBar">
+                <PokemonInfo pokemonName={enemyPokemonName} pokemonType1={enemyPokemonType1} pokemonType2={enemyPokemonType2} />
+                <HpInfo pokemonHp={enemyPokemonHp} />
               </div>
               <img src={playerPokemonSprite} className="PlayerPokemon"></img>
               <img src={enemyPokemonSprite} className="EnemyPokemon"></img>
             </div>
             <div className="AttackBox">
               {playerPokemonMoves.map((item, index) => (
-                <AttackSelector attackName = {item[0]} attackColor = {colorSelection(item[2])} attackType = {item[2]} attackDmg = {item[1]} attackClass = {item[3]}/>
+                <AttackSelector attackName={item[0]} attackColor={colorSelection(item[2])} attackType={item[2]} attackDmg={item[1]} attackClass={item[3]} />
               ))}
             </div>
           </div>
         </div>
-        <div className="ButtonsContainer" onClick={changeOpacityState}>
-          <div className="OnButton"></div>
-          <div className="DPad">
-            <div className="Horizontal"></div>
-            <div className="Vertical"></div>
-          </div>
-        </div>
+        <ConsoleButtons changeOpacityState={changeOpacityState} />
       </div>
     </div>
   )
 }
 
-function AttackSelector(props){
+//Components
+function AttackSelector({attackName, attackColor, attackDmg, attackClass}) {
   let attackStyle = {
-    backgroundColor: props.attackColor
+    backgroundColor: attackColor
   }
   let attackClassImg = physicalMoveImage;
-  if(props.attackClass == 'special'){
+  if (attackClass == 'special') {
     attackClassImg = specialMoveImage;
   }
   return (
-      <div key={props.attackName} className="AttackSelector" style={attackStyle}>
-        <h3 className="AttackName">{props.attackName}</h3>
-        <img src={attackClassImg} className="AttackClassImg"></img>
-        <h3 className="AttackDmg">DMG:{props.attackDmg}</h3>
-      </div>
+    <div key={attackName} className="AttackSelector" style={attackStyle}>
+      <h3 className="AttackName">{attackName}</h3>
+      <img src={attackClassImg} className="AttackClassImg"></img>
+      <h3 className="AttackDmg">DMG:{attackDmg}</h3>
+    </div>
   )
 }
 
+function PokemonInfo({ pokemonName, pokemonType1, pokemonType2 }) {
+  let typeStyle = {
+    color: colorSelection(pokemonType1)
+  }
+  let typeStyle2 = {
+    color: colorSelection(pokemonType2)
+  }
+  return (<div className="PokemonInfo">
+    <h4 className="PokemonName">{pokemonName}</h4>
+    <div className="TypeInfo">
+      <h4 style={typeStyle}>{pokemonType1}</h4>
+      {pokemonType2 != "" ? <>
+        <h4>/</h4>
+        <h4 style={typeStyle2}>{pokemonType2}</h4>
+      </> : <div></div>}
+    </div>
+  </div>);
+}
+
+function HpInfo({ PokemonHp }) {
+  let hpStyle = {
+    width: `${PokemonHp}%`
+  }
+  return (<div className="Hp" style={hpStyle}>
+    <h4>HP:</h4>
+    <div className="CurrentHp"></div>
+  </div>);
+}
+
+function ConsoleButtons({ changeOpacityState }) {
+  return (<div className="ButtonsContainer" onClick={changeOpacityState}>
+    <div className="OnButton"></div>
+    <div className="DPad">
+      <div className="Horizontal"></div>
+      <div className="Vertical"></div>
+    </div>
+  </div>);
+}
+
+//Game functions
+function Attacking(attack){
+
+}
+
+//Create Pokemon / Visual functions
 async function createNewPokemon() {
   let pokemonId = Math.floor(Math.random() * 151);
 
-  if(pokemonId == 0 || pokemonId == 132){
+  if (pokemonId == 0 || pokemonId == 132) {
     pokemonId = 1;
   }
 
@@ -143,27 +195,28 @@ async function createNewPokemon() {
   pokemon[0]['name'] = pokemonInformation['name'];
   pokemon[0]['backSprite'] = pokemonInformation['sprites']['back_default'];
   pokemon[0]['frontSprite'] = pokemonInformation['sprites']['front_default'];
-  pokemon[0]['type1'] = pokemonInformation['types'][0];
+  pokemon[0]['type1'] = pokemonInformation['types'][0]['type']['name'];
 
-  if(pokemonInformation['types'].length > 1){
-    pokemon[0]['type2'] = pokemonInformation['types'][1];
+  if (pokemonInformation['types'].length > 1) {
+    pokemon[0]['type2'] = pokemonInformation['types'][1]['type']['name'];
   }
 
   pokemon[0]['attackPower'] = pokemonInformation['stats'][1]['base_stat'] + pokemonInformation['stats'][3]['base_stat'];
   pokemon[0]['healthPower'] = pokemonInformation['stats'][0]['base_stat'] + pokemonInformation['stats'][2]['base_stat'] + pokemonInformation['stats'][4]['base_stat'];
 
+  let currentPokemonMoves = [];
+
   for (var i = 0; i < 4; i++) {
-    let currentPokemonMoves = [];
 
     let randomMove = Math.floor(Math.random() * pokemonInformation['moves'].length + 1);
 
-    while(randomMove == 0){
+    while (randomMove == 0) {
       randomMove = Math.floor(Math.random() * pokemonInformation['moves'].length + 1);
     }
 
     let moveInformation = await fetchMoves(randomMove);
 
-    while(moveInformation['power'] == null || currentPokemonMoves.includes(moveInformation['name'])){
+    while (moveInformation['power'] == null || currentPokemonMoves.includes(moveInformation['name'])) {
       randomMove = Math.floor(Math.random() * pokemonInformation['moves'].length + 1);
       moveInformation = await fetchMoves(randomMove);
     }
@@ -172,7 +225,7 @@ async function createNewPokemon() {
 
     pokemon[0]['moves'].push([moveInformation['name'], moveInformation['power'], moveInformation['type']['name'], moveInformation['damage_class']['name']]);
   }
-  
+
   return pokemon;
 }
 
