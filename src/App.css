@@ -155,6 +155,7 @@ body{
   height: 100%;
   width: 100%;
   background-color: green;
+  transition: background-color 3s, width 2s;
 }
 
 .PlayerPokemon{
@@ -180,6 +181,7 @@ body{
   background-color: rgb(255, 255, 195);
   display: grid;
   grid-template-rows: 25%;
+  border: 1px solid black;
 }
 
 .AttackSelector{
@@ -209,4 +211,9 @@ body{
 .AttackClassImg{
   height: 80%;
   width: 55%;
+}
+
+.ScreenMessage{
+  text-transform: uppercase;
+  text-align: center;
 }

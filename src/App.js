@@ -12,12 +12,17 @@ function App() {
   const [opacity, setOpacity] = useState('1');
   const [display, setDisplay] = useState('block');
   const [backgroundDisplay, setBackgroundDisplay] = useState('none');
+  const [attackSelectorDisplay, setAttackSelectorDisplay] = useState('grid');
+  const [currentMessage, setCurrentMessage] = useState('');
+
+
   const [playerPokemonName, setPlayerName] = useState("");
   const [playerPokemonSprite, setPlayerSprite] = useState("");
   const [playerPokemonMoves, setPlayerMoves] = useState([]);
   const [playerPokemonHp, setPlayerHp] = useState(100);
   const [playerPokemonType1, setPlayerType1] = useState("");
   const [playerPokemonType2, setPlayerType2] = useState("");
+  const [playerPokemonHpColor, setPlayerHpColor] = useState('green');
 
   const [enemyPokemonName, setEnemyName] = useState("");
   const [enemyPokemonHp, setEnemyHp] = useState(100);
@@ -25,6 +30,7 @@ function App() {
   const [enemyPokemonMoves, setEnemyMoves] = useState([]);
   const [enemyPokemonType1, setEnemyType1] = useState("");
   const [enemyPokemonType2, setEnemyType2] = useState("");
+  const [enemyPokemonHpColor, setEnemyHpColor] = useState('green');
 
   const TurnOnOff = () => {
     if (opacity === '1') {
@@ -61,15 +67,75 @@ function App() {
 
   
   const attackClick = (attackName, attackType, attackDmg) => {
-    let subtractionDmg = attacking(attackName, attackType, attackDmg);
+    let subtractionDmg = attackDmg;
     allEnemyPokemon[0][0]['currentHp'] = allEnemyPokemon[0][0]['currentHp'] - subtractionDmg;
-    let newEnemyHp = allEnemyPokemon[0][0]['currentHp'];
     
-    if (newEnemyHp < 0) {
-      newEnemyHp = 0;
+    if (allEnemyPokemon[0][0]['currentHp'] < 0) {
+      allEnemyPokemon[0][0]['currentHp']  = 0;
     }
 
+    let newEnemyHp = allEnemyPokemon[0][0]['currentHp'];
+
+    let newEnemyHpColor = 'red'
+
+    if(newEnemyHp > 50){
+      newEnemyHpColor = 'green';
+    }else if (newEnemyHp > 20){
+      newEnemyHpColor = 'yellow';
+    }
+
+    let screenMessage = `${playerPokemonName} uses ${attackName}!`
+
+    setAttackSelectorDisplay('none');
+    setCurrentMessage(screenMessage);
     setEnemyHp(newEnemyHp);
+    setEnemyHpColor(newEnemyHpColor);
+
+    setTimeout(() => {  
+      let enemyAttackDmg = enemyAttack()[0];
+      let enemyAttackName = enemyAttack()[1];
+
+      allPokemon[0][0]['currentHp'] = allPokemon[0][0]['currentHp'] - enemyAttackDmg;
+
+      if (allPokemon[0][0]['currentHp'] < 0) {
+        allPokemon[0][0]['currentHp']  = 0;
+      }
+
+      let newPlayerHp = allPokemon[0][0]['currentHp'];
+
+      let newPlayerHpColor = 'red'
+
+      if(newPlayerHp > 50){
+        newPlayerHpColor = 'green';
+      }else if (newPlayerHp > 20){
+        newPlayerHpColor = 'yellow';
+      }
+
+      screenMessage = `${enemyPokemonName} uses ${enemyAttackName}!`
+      setCurrentMessage(screenMessage);
+      setPlayerHp(newPlayerHp);
+      setPlayerHpColor(newPlayerHpColor);
+      enemyAttack();
+    }, 1000);
+
+    setTimeout(() => {
+      setAttackSelectorDisplay('grid');
+    }, 2000);
+  }
+
+  const enemyAttack = () =>{
+    let maxDmgAttack = 0;
+    let selectedAttack = 0;
+    let selectedAttackInformations = [];
+    for(var i=0; i<allEnemyPokemon[0][0]['moves'].length; i++){
+      if(allEnemyPokemon[0][0]['moves'][i][1] > maxDmgAttack){
+        maxDmgAttack = allEnemyPokemon[0][0]['moves'][i][1];
+        selectedAttack = allEnemyPokemon[0][0]['moves'][i][0];
+      } 
+    }
+    selectedAttackInformations.push(maxDmgAttack, selectedAttack);
+
+    return selectedAttackInformations;
   }
 
   let currentPokemon = 0;
@@ -95,22 +161,28 @@ function App() {
             <div className="GameSprites">
               <div className="HpBar">
                 <PokemonInfo pokemonName={playerPokemonName} pokemonType1={playerPokemonType1} pokemonType2={playerPokemonType2} />
-                <HpInfo pokemonHp={playerPokemonHp} />
+                <HpInfo pokemonHp={playerPokemonHp} hpColor={playerPokemonHpColor}/>
               </div>
               <div className="HpBar EnemyBar">
                 <PokemonInfo pokemonName={enemyPokemonName} pokemonType1={enemyPokemonType1} pokemonType2={enemyPokemonType2} />
-                <HpInfo pokemonHp={enemyPokemonHp} />
+                <HpInfo pokemonHp={enemyPokemonHp} hpColor={enemyPokemonHpColor}/>
               </div>
               <img src={playerPokemonSprite} className="PlayerPokemon"></img>
               <img src={enemyPokemonSprite} className="EnemyPokemon"></img>
             </div>
             <div className="AttackBox">
+              {attackSelectorDisplay === 'grid' ?
+              <>
               {playerPokemonMoves.map((item, index) => (
                 <AttackSelector key = {index} 
                 attackName={item[0]} attackColor={colorSelection(item[2])} 
                 attackType={item[2]} attackDmg={item[1]} attackClass={item[3]} 
                 attackClick = {attackClick}/>
               ))}
+              </>
+              : <div>
+                <h4 className="ScreenMessage">{currentMessage}</h4>
+                </div>}
             </div>
           </div>
         </div>
@@ -161,9 +233,10 @@ function PokemonInfo({ pokemonName, pokemonType1, pokemonType2 }) {
   </div>);
 }
 
-function HpInfo({ pokemonHp}) {
+function HpInfo({pokemonHp, hpColor}) {
   let hpStyle = {
-    width: `${pokemonHp}%`
+    width: `${pokemonHp}%`,
+    backgroundColor: `${hpColor}`
   }
   return (<div className="Hp">
     <h4>HP:</h4>
@@ -174,8 +247,8 @@ function HpInfo({ pokemonHp}) {
 }
 
 function ConsoleButtons({ TurnOnOff }) {
-  return (<div className="ButtonsContainer" onClick={TurnOnOff}>
-    <div className="OnButton"></div>
+  return (<div className="ButtonsContainer">
+    <div className="OnButton" onClick={TurnOnOff}></div>
     <div className="DPad">
       <div className="Horizontal"></div>
       <div className="Vertical"></div>
@@ -184,9 +257,7 @@ function ConsoleButtons({ TurnOnOff }) {
 }
 
 //Game functions
-function attacking(attackName, attackType, attackDmg){
-  return attackDmg;
-}
+
 
 //Create Pokemon / Visual functions
 async function createNewPokemon() {
