@@ -16,4 +16,5 @@ Tecnologias utilizadas: HTML, CSS, ReactJS e PokeAPI
      
 ### Aqui estão algumas imagens do projeto rodando: 
 
-![Screenshot_529](https://github.com/RuanEmanuell/pokereactarena/assets/113607857/a26af8c1-ec23-4522-8497-be3ea547922f)
+![Screenshot_550](https://github.com/RuanEmanuell/pokereactarena/assets/113607857/66ebdad5-d710-4180-9abc-847783f5f886)
+
