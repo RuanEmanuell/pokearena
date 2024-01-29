@@ -14,6 +14,8 @@ function App() {
   const [backgroundDisplay, setBackgroundDisplay] = useState('none');
   const [attackSelectorDisplay, setAttackSelectorDisplay] = useState('grid');
   const [currentMessage, setCurrentMessage] = useState('');
+  const [currentMessage2, setCurrentMessage2] = useState('');
+  const [currentMessage3, setCurrentMessage3] = useState('');
 
   const [playerPokemonName, setPlayerName] = useState("");
   const [playerPokemonSprite, setPlayerSprite] = useState("");
@@ -24,6 +26,7 @@ function App() {
   const [playerPokemonHpColor, setPlayerHpColor] = useState('green');
   const [currentPlayerPokemon, setPlayerCurrentPokemon] = useState(-1);
   const [playerVisible, setPlayerVisible] = useState('visible');
+  const [playerOpacity, setPlayerOpacity] = useState('1');
   const [playerPokemonBox, setPlayerPokemonBox] = useState([]);
 
   const [enemyPokemonName, setEnemyName] = useState("");
@@ -35,6 +38,7 @@ function App() {
   const [enemyPokemonHpColor, setEnemyHpColor] = useState('green');
   const [currentEnemyPokemon, setEnemyCurrentPokemon] = useState(-1);
   const [enemyVisible, setEnemyVisible] = useState('visible');
+  const [enemyOpacity, setEnemyOpacity] = useState('1');
   const [enemyPokemonBox, setEnemyPokemonBox] = useState([]);
 
 
@@ -71,8 +75,14 @@ function App() {
 
     allEnemyPokemon[currentEnemyPokemon]['currentHp'] = allEnemyPokemon[currentEnemyPokemon]['currentHp'] - subtractionDmg;
 
+    let screenMessage  = `${playerPokemonName} uses ${attackName}!`
+    let screenMessage2 = 'Now its your rival turn!'
+    let screenMessage3 = '';
+    setCurrentMessage3(screenMessage3);
+
     if (allEnemyPokemon[currentEnemyPokemon]['currentHp'] <= 0) {
       allEnemyPokemon[currentEnemyPokemon]['currentHp'] = 0;
+      screenMessage2 = `${enemyPokemonName} fainted!`
     }
 
     let newEnemyHp = allEnemyPokemon[currentEnemyPokemon]['currentHp'];
@@ -85,65 +95,87 @@ function App() {
       newEnemyHpColor = 'yellow';
     }
 
-    let screenMessage = `${playerPokemonName} uses ${attackName}!`
-
     setAttackSelectorDisplay('none');
     setCurrentMessage(screenMessage);
+    setCurrentMessage2(screenMessage2);
     setEnemyHp(newEnemyHp);
     setEnemyHpColor(newEnemyHpColor);
 
     if (allEnemyPokemon[currentEnemyPokemon]['currentHp'] > 0) {
-    setTimeout(() => {
-      let enemyAttackDmg = enemyAttack()[0];
-      let enemyAttackName = enemyAttack()[1];
-
-      setPlayerVisible('hidden');
-
       setTimeout(() => {
-        setPlayerVisible('visible');
-      }, 500);
+        let enemyAttackDmg = enemyAttack()[0];
+        let enemyAttackName = enemyAttack()[1];
 
-      allPokemon[currentPlayerPokemon]['currentHp'] = allPokemon[currentPlayerPokemon]['currentHp'] - enemyAttackDmg;
+        setPlayerVisible('hidden');
 
-      if (allPokemon[currentPlayerPokemon]['currentHp'] <= 0) {
-        allPokemon[currentPlayerPokemon]['currentHp'] = 0;
-      }
+        setTimeout(() => {
+          setPlayerVisible('visible');
+        }, 500);
 
-      let newPlayerHp = allPokemon[currentPlayerPokemon]['currentHp'];
+        allPokemon[currentPlayerPokemon]['currentHp'] = allPokemon[currentPlayerPokemon]['currentHp'] - enemyAttackDmg;
 
-      let newPlayerHpColor = 'red'
+        screenMessage2 = 'What are you doing next?'
 
-      if (newPlayerHp > 50) {
-        newPlayerHpColor = 'green';
-      } else if (newPlayerHp > 20) {
-        newPlayerHpColor = 'yellow';
-      }
+        if (allPokemon[currentPlayerPokemon]['currentHp'] <= 0) {
+          allPokemon[currentPlayerPokemon]['currentHp'] = 0;
+          screenMessage2 = `${playerPokemonName} fainted!`
+        }
 
-      screenMessage = `${enemyPokemonName} uses ${enemyAttackName}!`
-      setCurrentMessage(screenMessage);
-      setPlayerHp(newPlayerHp);
-      setPlayerHpColor(newPlayerHpColor);
-    }, 1000);
-  }
+        let newPlayerHp = allPokemon[currentPlayerPokemon]['currentHp'];
+
+        let newPlayerHpColor = 'red'
+
+        if (newPlayerHp > 50) {
+          newPlayerHpColor = 'green';
+        } else if (newPlayerHp > 20) {
+          newPlayerHpColor = 'yellow';
+        }
+
+        screenMessage = `${enemyPokemonName} uses ${enemyAttackName}!`
+        setCurrentMessage(screenMessage);
+        setCurrentMessage2(screenMessage2);
+        setPlayerHp(newPlayerHp);
+        setPlayerHpColor(newPlayerHpColor);
+      }, 1000);
+    }
 
     setTimeout(() => {
 
       if (allPokemon[currentPlayerPokemon]['currentHp'] == 0) {
-        if(allPokemon.length<3){
-        generateNewPokemon(true);
-        }else{
+        if (allPokemon.length < 3) {
+          setPlayerOpacity('0');
+          setTimeout(() => {
+            generateNewPokemon(true);
+            setPlayerOpacity('1');
+          }, 2000);
+          setTimeout(() => {
+            screenMessage3 = `I choose you, ${allPokemon[currentPlayerPokemon+1]['name']}!`;
+            setCurrentMessage3(screenMessage3);        
+          }, 3000);
+        } else {
           TurnOnOff();
         }
       }
       if (allEnemyPokemon[currentEnemyPokemon]['currentHp'] == 0) {
-        if(allEnemyPokemon.length<3){
-        generateNewPokemon(false);
-        }else{
+        if (allEnemyPokemon.length < 3) {
+          setEnemyOpacity('0');
+          setTimeout(() => {
+            generateNewPokemon(false);
+            setEnemyOpacity('1');
+          }, 2000);
+          setTimeout(() => {
+            screenMessage3 = `Your next opponent is ${allEnemyPokemon[currentEnemyPokemon+1]['name']}!`;
+            setCurrentMessage3(screenMessage3);
+          }, 3000);
+        } else {
           TurnOnOff();
         }
       }
-      setAttackSelectorDisplay('grid');
     }, 2000);
+
+    setTimeout(() => {
+      setAttackSelectorDisplay('grid');
+    }, 6000);
   }
 
   const enemyAttack = () => {
@@ -205,11 +237,13 @@ function App() {
   }
 
   let PlayerImgController = {
-    visibility: playerVisible
+    visibility: playerVisible,
+    opacity: playerOpacity
   }
 
   let EnemyImgController = {
-    visibility: enemyVisible
+    visibility: enemyVisible,
+    opacity: enemyOpacity
   }
 
   return (
@@ -235,11 +269,11 @@ function App() {
                 <PokemonInfo pokemonName={enemyPokemonName} pokemonType1={enemyPokemonType1} pokemonType2={enemyPokemonType2} />
                 <HpInfo pokemonHp={enemyPokemonHp} hpColor={enemyPokemonHpColor} />
                 <div className="PokemonBoxContainer">
-                <div className="PokemonBox">
-                  {enemyPokemonBox.map((item, index) => (
-                    <img key={index} src={item}></img>
-                  ))}
-                </div>
+                  <div className="PokemonBox">
+                    {enemyPokemonBox.map((item, index) => (
+                      <img key={index} src={item}></img>
+                    ))}
+                  </div>
                 </div>
               </div>
               <img src={playerPokemonSprite} className="PlayerPokemon" style={PlayerImgController}></img>
@@ -257,6 +291,8 @@ function App() {
                 </>
                 : <div>
                   <h4 className="ScreenMessage">{currentMessage}</h4>
+                  <h4 className="ScreenMessage">{currentMessage2}</h4>
+                  <h4 className="ScreenMessage">{currentMessage3}</h4>
                 </div>}
             </div>
           </div>

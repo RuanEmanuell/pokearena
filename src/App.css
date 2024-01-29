@@ -181,6 +181,7 @@ body{
   position: relative;
   top: 5%;
   height: 50%;
+  transition: opacity 0.5s;
 }
 
 .EnemyPokemon{
@@ -188,6 +189,7 @@ body{
   bottom: 30%;
   left: 20%;
   height: 50%;
+  transition: opacity 1s;
 }
 
 .GameSprites{
