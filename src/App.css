@@ -102,7 +102,7 @@ body{
 
 .EnemyBar{
   position: relative;
-  top: 50%;
+  top: 40%;
   left: 45%;
 }
 
@@ -158,15 +158,34 @@ body{
   transition: background-color 3s, width 2s;
 }
 
+.PokemonBoxContainer{
+  display: flex;
+  justify-content: center;
+}
+
+.PokemonBox{
+  display: grid;
+  grid-template-columns: 33% 33% 33%;
+  width: 50%;
+  height: 50%;
+  max-height: 45px;
+  background-color: white;
+  border: 2px solid black;
+}
+
+.PokemonBox img{
+  height: 30%;
+}
+
 .PlayerPokemon{
   position: relative;
-  top: 10%;
+  top: 5%;
   height: 50%;
 }
 
 .EnemyPokemon{
   position: relative;
-  bottom: 20%;
+  bottom: 30%;
   left: 20%;
   height: 50%;
 }
@@ -202,7 +221,6 @@ body{
   color: white;
   border: 2px solid grey;
 }
-
 
 .AttackName{
   text-transform: capitalize;

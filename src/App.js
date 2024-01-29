@@ -15,7 +15,6 @@ function App() {
   const [attackSelectorDisplay, setAttackSelectorDisplay] = useState('grid');
   const [currentMessage, setCurrentMessage] = useState('');
 
-
   const [playerPokemonName, setPlayerName] = useState("");
   const [playerPokemonSprite, setPlayerSprite] = useState("");
   const [playerPokemonMoves, setPlayerMoves] = useState([]);
@@ -23,6 +22,9 @@ function App() {
   const [playerPokemonType1, setPlayerType1] = useState("");
   const [playerPokemonType2, setPlayerType2] = useState("");
   const [playerPokemonHpColor, setPlayerHpColor] = useState('green');
+  const [currentPlayerPokemon, setPlayerCurrentPokemon] = useState(-1);
+  const [playerVisible, setPlayerVisible] = useState('visible');
+  const [playerPokemonBox, setPlayerPokemonBox] = useState([]);
 
   const [enemyPokemonName, setEnemyName] = useState("");
   const [enemyPokemonHp, setEnemyHp] = useState(100);
@@ -31,10 +33,16 @@ function App() {
   const [enemyPokemonType1, setEnemyType1] = useState("");
   const [enemyPokemonType2, setEnemyType2] = useState("");
   const [enemyPokemonHpColor, setEnemyHpColor] = useState('green');
+  const [currentEnemyPokemon, setEnemyCurrentPokemon] = useState(-1);
+  const [enemyVisible, setEnemyVisible] = useState('visible');
+  const [enemyPokemonBox, setEnemyPokemonBox] = useState([]);
+
 
   const TurnOnOff = () => {
     if (opacity === '1') {
       setOpacity('0');
+      allPokemon = [];
+      allEnemyPokemon = [];
     } else {
       setOpacity('1');
     }
@@ -45,42 +53,35 @@ function App() {
       } else {
         setDisplay('none');
         setBackgroundDisplay('block');
-
-        allPokemon.push(await createNewPokemon());
-        setPlayerName(allPokemon[0][0]['name'])
-        setPlayerMoves(allPokemon[0][0]['moves']);
-        setPlayerSprite(allPokemon[0][0]['backSprite']);
-        setPlayerHp(allPokemon[0][0]['currentHp']);
-        setPlayerType1(allPokemon[0][0]['type1']);
-        setPlayerType2(allPokemon[0][0]['type2']);
-
-        allEnemyPokemon.push(await createNewPokemon());
-        setEnemyName(allEnemyPokemon[0][0]['name'])
-        setEnemyMoves(allEnemyPokemon[0][0]['moves']);
-        setEnemySprite(allEnemyPokemon[0][0]['frontSprite']);
-        setEnemyHp(allEnemyPokemon[0][0]['currentHp']);
-        setEnemyType1(allEnemyPokemon[0][0]['type1']);
-        setEnemyType2(allEnemyPokemon[0][0]['type2']);
+        generateNewPokemon(true, true);
+        generateNewPokemon(false, true);
       }
     }, 150);
   }
 
-  
+
   const attackClick = (attackName, attackType, attackDmg) => {
     let subtractionDmg = attackDmg;
-    allEnemyPokemon[0][0]['currentHp'] = allEnemyPokemon[0][0]['currentHp'] - subtractionDmg;
-    
-    if (allEnemyPokemon[0][0]['currentHp'] < 0) {
-      allEnemyPokemon[0][0]['currentHp']  = 0;
+
+    setEnemyVisible('hidden');
+
+    setTimeout(() => {
+      setEnemyVisible('visible');
+    }, 200);
+
+    allEnemyPokemon[currentEnemyPokemon]['currentHp'] = allEnemyPokemon[currentEnemyPokemon]['currentHp'] - subtractionDmg;
+
+    if (allEnemyPokemon[currentEnemyPokemon]['currentHp'] <= 0) {
+      allEnemyPokemon[currentEnemyPokemon]['currentHp'] = 0;
     }
 
-    let newEnemyHp = allEnemyPokemon[0][0]['currentHp'];
+    let newEnemyHp = allEnemyPokemon[currentEnemyPokemon]['currentHp'];
 
     let newEnemyHpColor = 'red'
 
-    if(newEnemyHp > 50){
+    if (newEnemyHp > 50) {
       newEnemyHpColor = 'green';
-    }else if (newEnemyHp > 20){
+    } else if (newEnemyHp > 20) {
       newEnemyHpColor = 'yellow';
     }
 
@@ -91,23 +92,30 @@ function App() {
     setEnemyHp(newEnemyHp);
     setEnemyHpColor(newEnemyHpColor);
 
-    setTimeout(() => {  
+    if (allEnemyPokemon[currentEnemyPokemon]['currentHp'] > 0) {
+    setTimeout(() => {
       let enemyAttackDmg = enemyAttack()[0];
       let enemyAttackName = enemyAttack()[1];
 
-      allPokemon[0][0]['currentHp'] = allPokemon[0][0]['currentHp'] - enemyAttackDmg;
+      setPlayerVisible('hidden');
 
-      if (allPokemon[0][0]['currentHp'] < 0) {
-        allPokemon[0][0]['currentHp']  = 0;
+      setTimeout(() => {
+        setPlayerVisible('visible');
+      }, 500);
+
+      allPokemon[currentPlayerPokemon]['currentHp'] = allPokemon[currentPlayerPokemon]['currentHp'] - enemyAttackDmg;
+
+      if (allPokemon[currentPlayerPokemon]['currentHp'] <= 0) {
+        allPokemon[currentPlayerPokemon]['currentHp'] = 0;
       }
 
-      let newPlayerHp = allPokemon[0][0]['currentHp'];
+      let newPlayerHp = allPokemon[currentPlayerPokemon]['currentHp'];
 
       let newPlayerHpColor = 'red'
 
-      if(newPlayerHp > 50){
+      if (newPlayerHp > 50) {
         newPlayerHpColor = 'green';
-      }else if (newPlayerHp > 20){
+      } else if (newPlayerHp > 20) {
         newPlayerHpColor = 'yellow';
       }
 
@@ -115,30 +123,75 @@ function App() {
       setCurrentMessage(screenMessage);
       setPlayerHp(newPlayerHp);
       setPlayerHpColor(newPlayerHpColor);
-      enemyAttack();
     }, 1000);
+  }
 
     setTimeout(() => {
+
+      if (allPokemon[currentPlayerPokemon]['currentHp'] == 0) {
+        if(allPokemon.length<3){
+        generateNewPokemon(true);
+        }else{
+          TurnOnOff();
+        }
+      }
+      if (allEnemyPokemon[currentEnemyPokemon]['currentHp'] == 0) {
+        if(allEnemyPokemon.length<3){
+        generateNewPokemon(false);
+        }else{
+          TurnOnOff();
+        }
+      }
       setAttackSelectorDisplay('grid');
     }, 2000);
   }
 
-  const enemyAttack = () =>{
+  const enemyAttack = () => {
     let maxDmgAttack = 0;
     let selectedAttack = 0;
     let selectedAttackInformations = [];
-    for(var i=0; i<allEnemyPokemon[0][0]['moves'].length; i++){
-      if(allEnemyPokemon[0][0]['moves'][i][1] > maxDmgAttack){
-        maxDmgAttack = allEnemyPokemon[0][0]['moves'][i][1];
-        selectedAttack = allEnemyPokemon[0][0]['moves'][i][0];
-      } 
+    for (var i = 0; i < allEnemyPokemon[currentEnemyPokemon]['moves'].length; i++) {
+      if (allEnemyPokemon[currentEnemyPokemon]['moves'][i][1] > maxDmgAttack) {
+        maxDmgAttack = allEnemyPokemon[currentEnemyPokemon]['moves'][i][1];
+        selectedAttack = allEnemyPokemon[currentEnemyPokemon]['moves'][i][0];
+      }
     }
     selectedAttackInformations.push(maxDmgAttack, selectedAttack);
 
     return selectedAttackInformations;
   }
 
-  let currentPokemon = 0;
+  const generateNewPokemon = async (isPlayer) => {
+    if (isPlayer) {
+      allPokemon.push(await createNewPokemon());
+      let newCurrentPokemon = currentPlayerPokemon + 1;
+      let newPokemonBox = playerPokemonBox;
+      newPokemonBox.push(allPokemon[newCurrentPokemon]['frontSprite']);
+      setPlayerCurrentPokemon(newCurrentPokemon);
+      setPlayerName(allPokemon[newCurrentPokemon]['name'])
+      setPlayerMoves(allPokemon[newCurrentPokemon]['moves']);
+      setPlayerSprite(allPokemon[newCurrentPokemon]['backSprite']);
+      setPlayerHp(allPokemon[newCurrentPokemon]['currentHp']);
+      setPlayerHpColor('green');
+      setPlayerType1(allPokemon[newCurrentPokemon]['type1']);
+      setPlayerType2(allPokemon[newCurrentPokemon]['type2']);
+      setPlayerPokemonBox(newPokemonBox);
+    } else {
+      allEnemyPokemon.push(await createNewPokemon());
+      let newCurrentEnemyPokemon = currentEnemyPokemon + 1;
+      let newEnemyPokemonBox = enemyPokemonBox;
+      newEnemyPokemonBox.push(allEnemyPokemon[newCurrentEnemyPokemon]['frontSprite']);
+      setEnemyCurrentPokemon(newCurrentEnemyPokemon);
+      setEnemyName(allEnemyPokemon[newCurrentEnemyPokemon]['name'])
+      setEnemyMoves(allEnemyPokemon[newCurrentEnemyPokemon]['moves']);
+      setEnemySprite(allEnemyPokemon[newCurrentEnemyPokemon]['frontSprite']);
+      setEnemyHpColor('green');
+      setEnemyHp(allEnemyPokemon[newCurrentEnemyPokemon]['currentHp']);
+      setEnemyType1(allEnemyPokemon[newCurrentEnemyPokemon]['type1']);
+      setEnemyType2(allEnemyPokemon[newCurrentEnemyPokemon]['type2']);
+      setEnemyPokemonBox(newEnemyPokemonBox);
+    }
+  }
 
   let ScreenController = {
     opacity: opacity,
@@ -151,6 +204,14 @@ function App() {
     backgroundSize: 'cover'
   }
 
+  let PlayerImgController = {
+    visibility: playerVisible
+  }
+
+  let EnemyImgController = {
+    visibility: enemyVisible
+  }
+
   return (
     <div className="MainContainer">
       <div className="Console">
@@ -161,27 +222,41 @@ function App() {
             <div className="GameSprites">
               <div className="HpBar">
                 <PokemonInfo pokemonName={playerPokemonName} pokemonType1={playerPokemonType1} pokemonType2={playerPokemonType2} />
-                <HpInfo pokemonHp={playerPokemonHp} hpColor={playerPokemonHpColor}/>
+                <HpInfo pokemonHp={playerPokemonHp} hpColor={playerPokemonHpColor} />
+                <div className="PokemonBoxContainer">
+                  <div className="PokemonBox">
+                    {playerPokemonBox.map((item, index) => (
+                      <img key={index} src={item}></img>
+                    ))}
+                  </div>
+                </div>
               </div>
               <div className="HpBar EnemyBar">
                 <PokemonInfo pokemonName={enemyPokemonName} pokemonType1={enemyPokemonType1} pokemonType2={enemyPokemonType2} />
-                <HpInfo pokemonHp={enemyPokemonHp} hpColor={enemyPokemonHpColor}/>
+                <HpInfo pokemonHp={enemyPokemonHp} hpColor={enemyPokemonHpColor} />
+                <div className="PokemonBoxContainer">
+                <div className="PokemonBox">
+                  {enemyPokemonBox.map((item, index) => (
+                    <img key={index} src={item}></img>
+                  ))}
+                </div>
+                </div>
               </div>
-              <img src={playerPokemonSprite} className="PlayerPokemon"></img>
-              <img src={enemyPokemonSprite} className="EnemyPokemon"></img>
+              <img src={playerPokemonSprite} className="PlayerPokemon" style={PlayerImgController}></img>
+              <img src={enemyPokemonSprite} className="EnemyPokemon" style={EnemyImgController}></img>
             </div>
             <div className="AttackBox">
               {attackSelectorDisplay === 'grid' ?
-              <>
-              {playerPokemonMoves.map((item, index) => (
-                <AttackSelector key = {index} 
-                attackName={item[0]} attackColor={colorSelection(item[2])} 
-                attackType={item[2]} attackDmg={item[1]} attackClass={item[3]} 
-                attackClick = {attackClick}/>
-              ))}
-              </>
-              : <div>
-                <h4 className="ScreenMessage">{currentMessage}</h4>
+                <>
+                  {playerPokemonMoves.map((item, index) => (
+                    <AttackSelector key={index}
+                      attackName={item[0]} attackColor={colorSelection(item[2])}
+                      attackType={item[2]} attackDmg={item[1]} attackClass={item[3]}
+                      attackClick={attackClick} />
+                  ))}
+                </>
+                : <div>
+                  <h4 className="ScreenMessage">{currentMessage}</h4>
                 </div>}
             </div>
           </div>
@@ -193,8 +268,7 @@ function App() {
 }
 
 //Components
-function AttackSelector({attackName, attackColor, attackDmg, attackClass, attackType, attackClick}) {
-
+function AttackSelector({ attackName, attackColor, attackDmg, attackClass, attackType, attackClick }) {
   let attackStyle = {
     backgroundColor: attackColor
   }
@@ -206,7 +280,7 @@ function AttackSelector({attackName, attackColor, attackDmg, attackClass, attack
   }
 
   return (
-    <div className="AttackSelector" style={attackStyle} onClick = {() => attackClick(attackName, attackType, attackDmg)}>
+    <div className="AttackSelector" style={attackStyle} onClick={() => attackClick(attackName, attackType, attackDmg)}>
       <h3 className="AttackName">{attackName}</h3>
       <img src={attackClassImg} className="AttackClassImg"></img>
       <h3 className="AttackDmg">DMG:{attackDmg}</h3>
@@ -233,7 +307,7 @@ function PokemonInfo({ pokemonName, pokemonType1, pokemonType2 }) {
   </div>);
 }
 
-function HpInfo({pokemonHp, hpColor}) {
+function HpInfo({ pokemonHp, hpColor }) {
   let hpStyle = {
     width: `${pokemonHp}%`,
     backgroundColor: `${hpColor}`
@@ -256,9 +330,6 @@ function ConsoleButtons({ TurnOnOff }) {
   </div>);
 }
 
-//Game functions
-
-
 //Create Pokemon / Visual functions
 async function createNewPokemon() {
   let pokemonId = Math.floor(Math.random() * 151);
@@ -269,31 +340,31 @@ async function createNewPokemon() {
 
   let pokemonInformation = await fetchPokemon(pokemonId);
 
-  let pokemon = [
-    {
-      name: "",
-      backSprite: "",
-      frontSprite: "",
-      type1: "",
-      type2: "",
-      moves: [],
-      attackPower: 0,
-      healthPower: 0,
-      currentHp: 100
-    }
-  ]
-
-  pokemon[0]['name'] = pokemonInformation['name'];
-  pokemon[0]['backSprite'] = pokemonInformation['sprites']['back_default'];
-  pokemon[0]['frontSprite'] = pokemonInformation['sprites']['front_default'];
-  pokemon[0]['type1'] = pokemonInformation['types'][0]['type']['name'];
-
-  if (pokemonInformation['types'].length > 1) {
-    pokemon[0]['type2'] = pokemonInformation['types'][1]['type']['name'];
+  let pokemon =
+  {
+    name: "",
+    backSprite: "",
+    frontSprite: "",
+    type1: "",
+    type2: "",
+    moves: [],
+    attackPower: 0,
+    healthPower: 0,
+    currentHp: 100
   }
 
-  pokemon[0]['attackPower'] = pokemonInformation['stats'][1]['base_stat'] + pokemonInformation['stats'][3]['base_stat'];
-  pokemon[0]['healthPower'] = pokemonInformation['stats'][0]['base_stat'] + pokemonInformation['stats'][2]['base_stat'] + pokemonInformation['stats'][4]['base_stat'];
+
+  pokemon['name'] = pokemonInformation['name'];
+  pokemon['backSprite'] = pokemonInformation['sprites']['back_default'];
+  pokemon['frontSprite'] = pokemonInformation['sprites']['front_default'];
+  pokemon['type1'] = pokemonInformation['types'][0]['type']['name'];
+
+  if (pokemonInformation['types'].length > 1) {
+    pokemon['type2'] = pokemonInformation['types'][1]['type']['name'];
+  }
+
+  pokemon['attackPower'] = pokemonInformation['stats'][1]['base_stat'] + pokemonInformation['stats'][3]['base_stat'];
+  pokemon['healthPower'] = pokemonInformation['stats'][0]['base_stat'] + pokemonInformation['stats'][2]['base_stat'] + pokemonInformation['stats'][4]['base_stat'];
 
   let currentPokemonMoves = [];
 
@@ -314,9 +385,8 @@ async function createNewPokemon() {
 
     currentPokemonMoves.push(moveInformation['name']);
 
-    pokemon[0]['moves'].push([moveInformation['name'], moveInformation['power'], moveInformation['type']['name'], moveInformation['damage_class']['name']]);
+    pokemon['moves'].push([moveInformation['name'], moveInformation['power'], moveInformation['type']['name'], moveInformation['damage_class']['name']]);
   }
-
   return pokemon;
 }
 
