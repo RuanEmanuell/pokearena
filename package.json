@@ -15,10 +15,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject",
-    "predeploy": "npm run build",
-    "deploy": "gh-pages -d build",
-    "homepage": "https://ruanemanuell.github.io/pokereactarena/"
+    "eject": "react-scripts eject"
   },
   "eslintConfig": {
     "extends": [
@@ -36,10 +33,6 @@
       "last 1 chrome version",
       "last 1 firefox version",
       "last 1 safari version"
-    ],
-    "homepage": "https://ruanemanuell.github.io/pokereactarena/"
-  },
-  "devDependencies": {
-    "gh-pages": "^6.1.1"
+    ]
   }
 }
