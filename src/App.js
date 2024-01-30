@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import backgroundImage from './public/background.png';
 import physicalMoveImage from './public/physicalmove.png';
 import specialMoveImage from './public/specialmove.png';
+import consoleButton from './public/button.png';
 
 let allPokemon = [];
 let allEnemyPokemon = [];
@@ -47,8 +48,20 @@ function App() {
       setOpacity('0');
       allPokemon = [];
       allEnemyPokemon = [];
+      setCurrentMessage('');
+      setCurrentMessage2('');
+      setCurrentMessage3('');
+      setEnemyCurrentPokemon(-1);
+      setPlayerCurrentPokemon(-1);
+      setPlayerHp(100);
+      setEnemyHp(100);
+      setPlayerHpColor('green');
+      setEnemyHpColor('green');
+      setPlayerPokemonBox([]);
+      setEnemyPokemonBox([]);
     } else {
       setOpacity('1');
+      setAttackSelectorDisplay('grid');
     }
     setTimeout(async function () {
       if (opacity == '0') {
@@ -57,15 +70,16 @@ function App() {
       } else {
         setDisplay('none');
         setBackgroundDisplay('block');
-        generateNewPokemon(true, true);
-        generateNewPokemon(false, true);
+        await generateNewPokemon(true, true);
+        await generateNewPokemon(false, true);
       }
     }, 150);
   }
 
 
   const attackClick = (attackName, attackType, attackDmg) => {
-    let subtractionDmg = attackDmg;
+    let isGameOver = false;
+    let subtractionDmg = calculateAttackDmg(attackType, attackDmg, allEnemyPokemon[currentEnemyPokemon]['type1'], allEnemyPokemon[currentEnemyPokemon]['type2'], allEnemyPokemon[currentEnemyPokemon]['attackPower']);
 
     setEnemyVisible('hidden');
 
@@ -75,14 +89,29 @@ function App() {
 
     allEnemyPokemon[currentEnemyPokemon]['currentHp'] = allEnemyPokemon[currentEnemyPokemon]['currentHp'] - subtractionDmg;
 
-    let screenMessage  = `${playerPokemonName} uses ${attackName}!`
+    let screenMessage = `${playerPokemonName} uses ${attackName}!`
     let screenMessage2 = 'Now its your rival turn!'
     let screenMessage3 = '';
+    if (subtractionDmg > 50) {
+      if (allEnemyPokemon[currentEnemyPokemon]['currentHp'] > 0) {
+        screenMessage3 = screenMessage2;
+      }
+      screenMessage2 = 'Its super effective!'
+    } else if (subtractionDmg < 20) {
+      if (allEnemyPokemon[currentEnemyPokemon]['currentHp'] > 0) {
+        screenMessage3 = screenMessage2;
+      }
+      screenMessage2 = 'Its not very effective!'
+    }
     setCurrentMessage3(screenMessage3);
 
     if (allEnemyPokemon[currentEnemyPokemon]['currentHp'] <= 0) {
       allEnemyPokemon[currentEnemyPokemon]['currentHp'] = 0;
-      screenMessage2 = `${enemyPokemonName} fainted!`
+      if (screenMessage3 == '') {
+        screenMessage2 = `${enemyPokemonName} fainted!`
+      } else {
+        screenMessage3 = `${enemyPokemonName} fainted!`;
+      }
     }
 
     let newEnemyHp = allEnemyPokemon[currentEnemyPokemon]['currentHp'];
@@ -103,7 +132,7 @@ function App() {
 
     if (allEnemyPokemon[currentEnemyPokemon]['currentHp'] > 0) {
       setTimeout(() => {
-        let enemyAttackDmg = enemyAttack()[0];
+        let enemyAttackDmg = calculateAttackDmg(attackType, enemyAttack()[0], enemyAttack[2], allPokemon[currentPlayerPokemon]['type1'], allEnemyPokemon[currentEnemyPokemon]['type2'], allPokemon[currentPlayerPokemon]['attackPower']);
         let enemyAttackName = enemyAttack()[1];
 
         setPlayerVisible('hidden');
@@ -115,10 +144,27 @@ function App() {
         allPokemon[currentPlayerPokemon]['currentHp'] = allPokemon[currentPlayerPokemon]['currentHp'] - enemyAttackDmg;
 
         screenMessage2 = 'What are you doing next?'
+        let screenMessage3 = '';
+        if (subtractionDmg > 50) {
+          if (allPokemon[currentPlayerPokemon]['currentHp'] > 0) {
+            screenMessage3 = screenMessage2;
+          }
+          screenMessage2 = 'Its super effective!'
+        } else if (subtractionDmg < 20) {
+          if (allPokemon[currentPlayerPokemon]['currentHp'] > 0) {
+            screenMessage3 = screenMessage2;
+          }
+          screenMessage2 = 'Its not very effective!'
+        }
+        setCurrentMessage3(screenMessage3);
 
         if (allPokemon[currentPlayerPokemon]['currentHp'] <= 0) {
           allPokemon[currentPlayerPokemon]['currentHp'] = 0;
-          screenMessage2 = `${playerPokemonName} fainted!`
+          if (screenMessage3 == '') {
+            screenMessage2 = `${playerPokemonName} fainted!`
+          } else {
+            screenMessage3 = `${playerPokemonName} fainted!`;
+          }
         }
 
         let newPlayerHp = allPokemon[currentPlayerPokemon]['currentHp'];
@@ -144,37 +190,45 @@ function App() {
       if (allPokemon[currentPlayerPokemon]['currentHp'] == 0) {
         if (allPokemon.length < 3) {
           setPlayerOpacity('0');
-          setTimeout(() => {
-            generateNewPokemon(true);
+          setTimeout(async () => {
+            await generateNewPokemon(true);
             setPlayerOpacity('1');
+            setTimeout(() => {
+              screenMessage3 = `I choose you, ${allPokemon[currentPlayerPokemon + 1]['name']}!`;
+              setCurrentMessage3(screenMessage3);
+            }, 1000);
           }, 2000);
-          setTimeout(() => {
-            screenMessage3 = `I choose you, ${allPokemon[currentPlayerPokemon+1]['name']}!`;
-            setCurrentMessage3(screenMessage3);        
-          }, 3000);
         } else {
-          TurnOnOff();
+          screenMessage3 = 'You lose! Restart the game to play again!';
+          setCurrentMessage3(screenMessage3);
+          isGameOver = true;
         }
       }
       if (allEnemyPokemon[currentEnemyPokemon]['currentHp'] == 0) {
         if (allEnemyPokemon.length < 3) {
           setEnemyOpacity('0');
-          setTimeout(() => {
-            generateNewPokemon(false);
+          setTimeout(async () => {
+            await generateNewPokemon(false);
             setEnemyOpacity('1');
+            setTimeout(() => {
+              screenMessage3 = `Your next opponent is ${allEnemyPokemon[currentEnemyPokemon + 1]['name']}!`;
+              setCurrentMessage3(screenMessage3);
+            }, 1000);
           }, 2000);
-          setTimeout(() => {
-            screenMessage3 = `Your next opponent is ${allEnemyPokemon[currentEnemyPokemon+1]['name']}!`;
-            setCurrentMessage3(screenMessage3);
-          }, 3000);
         } else {
-          TurnOnOff();
+          screenMessage3 = 'You won! Restart the game to play again!';
+          setCurrentMessage3(screenMessage3);
+          isGameOver = true;
         }
       }
     }, 2000);
 
     setTimeout(() => {
-      setAttackSelectorDisplay('grid');
+      if (!isGameOver) {
+        setAttackSelectorDisplay('grid');
+      } else {
+        TurnOnOff();
+      }
     }, 6000);
   }
 
@@ -182,13 +236,16 @@ function App() {
     let maxDmgAttack = 0;
     let selectedAttack = 0;
     let selectedAttackInformations = [];
+    let attackType = '';
     for (var i = 0; i < allEnemyPokemon[currentEnemyPokemon]['moves'].length; i++) {
       if (allEnemyPokemon[currentEnemyPokemon]['moves'][i][1] > maxDmgAttack) {
         maxDmgAttack = allEnemyPokemon[currentEnemyPokemon]['moves'][i][1];
         selectedAttack = allEnemyPokemon[currentEnemyPokemon]['moves'][i][0];
+        attackType = allEnemyPokemon[currentEnemyPokemon]['moves'][i][2];
       }
     }
-    selectedAttackInformations.push(maxDmgAttack, selectedAttack);
+    
+    selectedAttackInformations.push(maxDmgAttack, selectedAttack, attackType);
 
     return selectedAttackInformations;
   }
@@ -198,6 +255,10 @@ function App() {
       allPokemon.push(await createNewPokemon());
       let newCurrentPokemon = currentPlayerPokemon + 1;
       let newPokemonBox = playerPokemonBox;
+      if (newCurrentPokemon > 0 && allPokemon.length < 2) {
+        newCurrentPokemon = 0;
+        newPokemonBox = [];
+      }
       newPokemonBox.push(allPokemon[newCurrentPokemon]['frontSprite']);
       setPlayerCurrentPokemon(newCurrentPokemon);
       setPlayerName(allPokemon[newCurrentPokemon]['name'])
@@ -212,6 +273,10 @@ function App() {
       allEnemyPokemon.push(await createNewPokemon());
       let newCurrentEnemyPokemon = currentEnemyPokemon + 1;
       let newEnemyPokemonBox = enemyPokemonBox;
+      if (newCurrentEnemyPokemon > 0 && allEnemyPokemon.length < 2) {
+        newCurrentEnemyPokemon = 0;
+        newEnemyPokemonBox = [];
+      }
       newEnemyPokemonBox.push(allEnemyPokemon[newCurrentEnemyPokemon]['frontSprite']);
       setEnemyCurrentPokemon(newCurrentEnemyPokemon);
       setEnemyName(allEnemyPokemon[newCurrentEnemyPokemon]['name'])
@@ -245,6 +310,7 @@ function App() {
     visibility: enemyVisible,
     opacity: enemyOpacity
   }
+
 
   return (
     <div className="MainContainer">
@@ -286,7 +352,12 @@ function App() {
                     <AttackSelector key={index}
                       attackName={item[0]} attackColor={colorSelection(item[2])}
                       attackType={item[2]} attackDmg={item[1]} attackClass={item[3]}
-                      attackClick={attackClick} />
+                      attackClick={attackClick} attackTitle={`
+                      ${item[0]}
+                      POWER: ${item[1]}
+                      TYPE : ${item[2]}
+                      CLASS: ${item[3]}
+                      `.toUpperCase()} />
                   ))}
                 </>
                 : <div>
@@ -304,7 +375,7 @@ function App() {
 }
 
 //Components
-function AttackSelector({ attackName, attackColor, attackDmg, attackClass, attackType, attackClick }) {
+function AttackSelector({ attackName, attackColor, attackDmg, attackClass, attackType, attackClick, attackTitle }) {
   let attackStyle = {
     backgroundColor: attackColor
   }
@@ -316,7 +387,7 @@ function AttackSelector({ attackName, attackColor, attackDmg, attackClass, attac
   }
 
   return (
-    <div className="AttackSelector" style={attackStyle} onClick={() => attackClick(attackName, attackType, attackDmg)}>
+    <div className="AttackSelector" style={attackStyle} onClick={() => attackClick(attackName, attackType, attackDmg)} title={attackTitle}>
       <h3 className="AttackName">{attackName}</h3>
       <img src={attackClassImg} className="AttackClassImg"></img>
       <h3 className="AttackDmg">DMG:{attackDmg}</h3>
@@ -358,12 +429,72 @@ function HpInfo({ pokemonHp, hpColor }) {
 
 function ConsoleButtons({ TurnOnOff }) {
   return (<div className="ButtonsContainer">
-    <div className="OnButton" onClick={TurnOnOff}></div>
+    <div className="OnButton" onClick={TurnOnOff}>
+      <img src={consoleButton} className="ConsoleButton"></img>
+    </div>
     <div className="DPad">
       <div className="Horizontal"></div>
       <div className="Vertical"></div>
     </div>
   </div>);
+}
+
+//Game functions 
+function calculateAttackDmg(attackType, attackDmg, type1, type2, pokemonPower) {
+  if(pokemonPower/10 <= 0){
+    attackDmg = attackDmg/2;
+  }else{
+    attackDmg = (pokemonPower / 10) + (attackDmg / 2);
+  }
+
+  if (checkTypeAdvantage(attackType, type1, type2) == 1) {
+    attackDmg = attackDmg * 2;
+  } else if (checkTypeAdvantage(attackType, type1, type2) == 2) {
+    attackDmg = attackDmg * 4;
+  }
+
+  if(!attackDmg>0){
+    attackDmg = (Math.random() * 99) + 1;
+  }
+
+  return attackDmg;
+}
+
+function checkTypeAdvantage(attackType, type1, type2) {
+  let isTypeAdvantage = 0;
+
+  let typesAdvantage = [
+    { 'fairy': ['fight', 'dragon', 'dark'] },
+    { 'fighting': ['normal', 'ice', 'rock', 'dark', 'steel'] },
+    { 'flying': ['fighting', 'bug', 'grass'] },
+    { 'poison': ['grass', 'fighting'] },
+    { 'ground': ['fire', 'electric', 'poison', 'rock', 'steel'] },
+    { 'rock': ['ice', 'flying', 'bug', 'fire'] },
+    { 'bug': ['grass', 'psychic', 'dark'] },
+    { 'ghost': ['ghost', 'psychic'] },
+    { 'steel': ['ice', 'rock', 'fairy'] },
+    { 'fire': ['grass', 'ice', 'bug', 'steel'] },
+    { 'water': ['fire', 'rock', 'ground'] },
+    { 'grass': ['water', 'ground', 'rock'] },
+    { 'electric': ['water', 'flying'] },
+    { 'psychic': ['fighting', 'poison'] },
+    { 'ice': ['grass', 'ground', 'flying', 'dragon'] },
+    { 'dragon': ['dragon'] },
+    { 'dark': ['psychic', 'ghost'] }
+  ];
+
+  for (var i = 0; i < typesAdvantage.length; i++) {
+    if (typesAdvantage[i][attackType] != undefined) {
+      if (typesAdvantage[i][attackType].includes(type1)) {
+        isTypeAdvantage = 1;
+      }
+      if (typesAdvantage[i][attackType].includes(type2) && type2 != '') {
+        isTypeAdvantage = 2;
+      }
+    }
+  }
+
+  return isTypeAdvantage;
 }
 
 //Create Pokemon / Visual functions

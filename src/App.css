@@ -49,9 +49,18 @@ body{
   max-width: 500px;
   width: 25%;
   margin: 20% 10%;
-  background-color: black;
+  background-color: rgb(19, 19, 19);
+  border: 2px solid black;
   border-radius: 100%;
   height: 50%;
+  max-height: 175px;;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ConsoleButton{
+  height: 75%;
 }
 
 .DPad{
@@ -212,6 +221,10 @@ body{
   transition: border 0.25s, color 0.25s;
   display: grid;
   grid-template-columns: 70% 10% 20%;
+}
+
+.AttackSelector:hover::after{
+  text-transform: uppercase;
 }
 
 .AttackSelector h3{
