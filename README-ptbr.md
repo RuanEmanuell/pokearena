@@ -3,8 +3,8 @@
 ## PokeReactArena
 
 Este projeto é um jogo interativo baseado na web, construído em React, que simula batalhas de Pokémon. Os jogadores podem iniciar uma batalha e pokémons e ataques aleatórios serão selecionados usando o PokeAPI.
-Foi ótimo treinar para treinar o uso do React, mas um pouco cansativo por causa de quantos estados precisam ser atualizados para que ele funcione. Meu próximo passo é aprender a usar alguma ferramenta React para
-centralizar a gestão do estado no React, como Redux ou MobX.
+Foi ótimo treinar para treinar o uso do React, mas um pouco cansativo por causa de quantos estados precisam ser atualizados para que ele funcione. Meu próximo passo é ficar mais familiarizado com o estado no React
+e então aprender a usar alguma ferramenta para centralizar a gestão do estado no React, como Redux ou MobX.
 
 Tecnologias utilizadas: HTML, CSS, ReactJS e PokeAPI
 
